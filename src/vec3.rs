@@ -64,15 +64,15 @@ impl Vec3 {
     }
 
     #[inline]
-    pub fn dot(&self, other: Self) -> f64 {
-        self.e[0] * other.e[0] + self.e[1] * other.e[1] + self.e[2] + other.e[2]
+    pub fn dot(&self, v: Self) -> f64 {
+        (self.e[0] * v.e[0]) + (self.e[1] * v.e[1]) + (self.e[2] * v.e[2])
     }
 
     #[inline]
     pub fn cross(&self, other: Self) -> Self {
         Self::from(
             self.e[1] * other.e[2] - self.e[2] * other.e[1],
-            self.e[2] * other.e[0] - self.e[0] * other.e[2],
+            -(self.e[2] * other.e[0] - self.e[0] * other.e[2]),
             self.e[0] * other.e[1] - self.e[1] * other.e[0]
         )
     }
@@ -148,7 +148,7 @@ impl ops::Mul for Vec3 {
 impl ops::Mul<f64> for Vec3 {
     type Output = Vec3;
     fn mul(self, t: f64) -> Self::Output {
-        Self::from(self.x() * t, self.y() * t, self.z() * t)
+        t * self//Self::from(self.x() * t, self.y() * t, self.z() * t)
     }
 }
 
@@ -163,7 +163,7 @@ impl ops::Mul<Vec3> for f64 {
 impl ops::Div<f64> for Vec3 {
     type Output = Vec3;
     fn div(self, t: f64) -> Self::Output {
-        self * (1f64 / t)
+        (1.0 / t) * self
     }
 }
 
