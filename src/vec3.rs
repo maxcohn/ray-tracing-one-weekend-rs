@@ -152,6 +152,14 @@ impl ops::Mul<f64> for Vec3 {
     }
 }
 
+impl ops::Mul<Vec3> for f64 {
+    type Output = Vec3;
+    fn mul(self, t: Vec3) -> Self::Output {
+        Vec3::from(t.x() * self, t.y() * self, t.z() * self)
+    }
+}
+
+
 impl ops::Div<f64> for Vec3 {
     type Output = Vec3;
     fn div(self, t: f64) -> Self::Output {
