@@ -53,8 +53,14 @@ impl Vec3 {
         self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2]
     }
 
+    /// Print the Vec3 to stdout
     pub fn print(&self) {
         println!("{} {} {}", self.x(), self.y(), self.z());
+    }
+
+    /// Print the Vec3 as a color
+    pub fn print_color(&self) {
+        println!("{} {} {}", (255.999 * self.x()) as i32, (255.999 * self.y()) as i32, (255.999 * self.z()) as i32);
     }
 
     #[inline]
