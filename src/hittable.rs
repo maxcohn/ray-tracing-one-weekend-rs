@@ -1,9 +1,9 @@
-use crate::{Vec3, Point3, Color, Ray};
+use crate::{Color, Point3, Ray, Vec3};
 
 #[derive(Debug, Clone)]
 pub struct HitRecord {
     p: Point3,
-    pub normal: Vec3,//TODO: should this be public
+    pub normal: Vec3, //TODO: should this be public
     t: f64,
     pub front_face: bool,
 }
@@ -32,7 +32,6 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
 }
 
-
 pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
 }
@@ -42,22 +41,20 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn push(&mut self, object: Box<dyn Hittable>){
+    pub fn push(&mut self, object: Box<dyn Hittable>) {
         self.objects.push(object);
     }
 
     pub fn new() -> Self {
-        Self {
-            objects: vec![],
-        }
+        Self { objects: vec![] }
     }
 }
 
 impl Hittable for HittableList {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         let mut temp_rec: HitRecord = HitRecord {
-            p: Point3::from(0.0,0.0,0.0),
-            normal: Vec3::from(0.0,0.0,0.0),
+            p: Point3::from(0.0, 0.0, 0.0),
+            normal: Vec3::from(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
         };
@@ -84,10 +81,7 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn from(center: Point3, radius: f64) -> Self {
-        Sphere {
-            center,
-            radius,
-        }
+        Sphere { center, radius }
     }
 }
 
@@ -98,15 +92,15 @@ impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         // if the discriminant is greater than zero, that means our ray hits the sphere
         // at least once
-        
+
         // (−b± √(b2−4ac) ) / (√2a)
 
         let oc = ray.origin() - self.center;
-        
+
         let a = ray.direction().length_squared();
         let half_b = oc.dot(ray.direction());
-        let c = oc.length_squared() - self.radius*self.radius;
-        let discriminant = half_b*half_b - a*c;
+        let c = oc.length_squared() - self.radius * self.radius;
+        let discriminant = half_b * half_b - a * c;
 
         if discriminant > 0.0 {
             let root = discriminant.sqrt();
