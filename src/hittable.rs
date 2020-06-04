@@ -1,15 +1,81 @@
-use crate::{Vec3, Point3, Color, Ray}
+use crate::{Vec3, Point3, Color, Ray};
 
+#[derive(Debug, Clone)]
 pub struct HitRecord {
     p: Point3,
-    normal: Vec3,
-    t: double,
+    pub normal: Vec3,//TODO: should this be public
+    t: f64,
+    pub front_face: bool,
 }
 
-trait Hittable {
-    fn hit(ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
+impl HitRecord {
+    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) {
+        self.front_face = ray.direction().dot(outward_normal) < 0.0;
+        self.normal = if self.front_face {
+            outward_normal
+        } else {
+            -outward_normal
+        }
+    }
+
+    pub fn new() -> Self {
+        Self {
+            p: Point3::new(),
+            normal: Vec3::new(),
+            t: 0.0,
+            front_face: false,
+        }
+    }
 }
 
+pub trait Hittable {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool;
+}
+
+
+pub struct HittableList {
+    objects: Vec<Box<dyn Hittable>>,
+}
+
+impl HittableList {
+    pub fn clear(&mut self) {
+        self.objects.clear();
+    }
+
+    pub fn push(&mut self, object: Box<dyn Hittable>){
+        self.objects.push(object);
+    }
+
+    pub fn new() -> Self {
+        Self {
+            objects: vec![],
+        }
+    }
+}
+
+impl Hittable for HittableList {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+        let mut temp_rec: HitRecord = HitRecord {
+            p: Point3::from(0.0,0.0,0.0),
+            normal: Vec3::from(0.0,0.0,0.0),
+            t: 0.0,
+            front_face: false,
+        };
+
+        let mut hit_anything = false;
+        let mut closest = t_max;
+
+        for object in self.objects.iter() {
+            if object.hit(ray, t_min, closest, &mut temp_rec) {
+                hit_anything = true;
+                closest = temp_rec.t;
+                *hit_record = temp_rec.clone();
+            }
+        }
+
+        return hit_anything;
+    }
+}
 
 pub struct Sphere {
     center: Point3,
@@ -29,17 +95,17 @@ impl Hittable for Sphere {
     /// Calculate the hit point of the ray on the spehere
     ///
     /// t^2 b⋅b+2tb⋅(A−C)+(A−C)⋅(A−C)−r^2=0
-    fn hit(ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64, hit_record: &mut HitRecord) -> bool {
         // if the discriminant is greater than zero, that means our ray hits the sphere
         // at least once
         
         // (−b± √(b2−4ac) ) / (√2a)
 
-        let oc = ray.origin() - center;
+        let oc = ray.origin() - self.center;
         
         let a = ray.direction().length_squared();
         let half_b = oc.dot(ray.direction());
-        let c = oc.length_squared() - radius*radius;
+        let c = oc.length_squared() - self.radius*self.radius;
         let discriminant = half_b*half_b - a*c;
 
         if discriminant > 0.0 {
@@ -48,14 +114,16 @@ impl Hittable for Sphere {
             if temp < t_max && temp > t_min {
                 hit_record.t = temp;
                 hit_record.p = ray.at(temp);
-                hit_record.normal = (hit_record.p - center) / radius;
+                let outward_normal = (hit_record.p - self.center) / self.radius;
+                hit_record.set_face_normal(ray, outward_normal);
                 return true;
             }
             let temp = (-half_b + root) / a;
-            if (temp < t_max && temp > t_min) {
+            if temp < t_max && temp > t_min {
                 hit_record.t = temp;
                 hit_record.p = ray.at(temp);
-                hit_record.normal = (hit_record.p - center) / radius;
+                let outward_normal = (hit_record.p - self.center) / self.radius;
+                hit_record.set_face_normal(ray, outward_normal);
                 return true;
             }
         }
