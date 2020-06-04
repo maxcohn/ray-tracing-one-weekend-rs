@@ -13,17 +13,29 @@ use hittable::*;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
 
+//TODO: once finished, randomly generate sphere to place around
+
+
+//TODO: make these adjustable - cli args
 const SAMPLES_PER_PIXEL: usize = 100;
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
 const IMAGE_WIDTH: usize = 384;
 const IMAGE_HEIGHT: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
+const MAX_DEPTH: u32 = 50;
 
 /// Get the color of the ray so that we can get a blue to white gradient
-fn ray_color<T: Hittable>(ray: &Ray, world: &T) -> Color {
+fn ray_color<T: Hittable>(ray: &Ray, world: &T, depth: u32) -> Color {
     let mut rec = HitRecord::new();
 
-    if world.hit(ray, 0.0, f64::INFINITY, &mut rec) {
-        return 0.5 * (rec.normal + Color::from(1.0, 1.0, 1.0));
+
+    if depth <= 0 {
+        return Color::new();
+    }
+
+    // Check if the given object is going to be hit by the given ray
+    if world.hit(ray, 0.001, f64::INFINITY, &mut rec) {
+        let target = rec.p + rec.normal + Point3::random_unit_vector();
+        return 0.5 * ray_color(&Ray::from(rec.p, target - rec.p), world, depth - 1);
     }
 
     let unit_dir: Vec3 = ray.direction().unit_vector();
@@ -49,7 +61,10 @@ fn main() {
     let cam = Camera::new();
 
     let mut world = HittableList::new();
-    world.push(Box::new(Sphere::from(Point3::from(0.0, 0.0, -1.0), 0.5)));
+    world.push(Box::new(Sphere::from(
+        Point3::from(0.0, 0.0, -1.0),
+        0.5
+    )));
     world.push(Box::new(Sphere::from(
         Point3::from(0.0, -100.5, -1.0),
         100.0,
@@ -69,7 +84,7 @@ fn main() {
                 let v = ((j as f64 + rng.gen::<f64>()) / (IMAGE_HEIGHT - 1) as f64) as f64;
 
                 let ray = cam.get_ray(u, v);
-                color += ray_color(&ray, &world);
+                color += ray_color(&ray, &world, MAX_DEPTH);
             }
 
             color.print_color(SAMPLES_PER_PIXEL);

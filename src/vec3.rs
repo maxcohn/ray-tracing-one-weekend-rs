@@ -1,4 +1,7 @@
 use std::ops;
+use std::f64;
+
+use rand::Rng;
 
 use crate::util;
 
@@ -62,9 +65,12 @@ impl Vec3 {
 
         // divide the color total by the number of samples
         let scale = 1.0 / samples_per_pixel as f64;
-        r *= scale;
-        b *= scale;
-        g *= scale;
+
+        // We sqrt so as a gamma adjust. We raise the color to the power (1/gamma)
+        // and we're using a gamma of 2, thus a sqrt
+        r = (r * scale).sqrt();
+        b = (b * scale).sqrt();
+        g = (g * scale).sqrt();
 
         println!(
             "{} {} {}",
@@ -92,6 +98,54 @@ impl Vec3 {
     pub fn unit_vector(&self) -> Self {
         *self / self.length()
     }
+
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Self::from(
+            rng.gen::<f64>(),
+            rng.gen::<f64>(),
+            rng.gen::<f64>()
+        )
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Self {
+        let mut rng = rand::thread_rng();
+        Self::from(
+            rng.gen_range(min, max),
+            rng.gen_range(min, max),
+            rng.gen_range(min, max),
+        )
+    }
+
+    //TODO: remove
+    pub fn random_in_unit_sphere() -> Self {
+        // There are two unit radius spheres tangent to the hit point (p). These two
+        // spheres have a center of (P + n) and (P - n) (n is the normal surface).
+
+        loop {
+            let v = Vec3::random_range(-1.0, 1.0);
+            if v.length_squared() >= 1.0 {
+                continue;
+            }
+
+            return v;
+        }
+    }
+
+    pub fn random_unit_vector() -> Self {
+        // https://raytracing.github.io/books/RayTracingInOneWeekend.html#diffusematerials/truelambertianreflection
+        // Lambertian distribution. We chose this distribution because it is more
+        // uniform. We do this by choosing points on the surface of the unit sphere
+        // offset along the surface normal
+        let mut rng = rand::thread_rng();
+        let a: f64 = rng.gen_range(0.0, 2.0 * f64::consts::PI);
+        let z: f64 = rng.gen_range(-1.0, 1.0);
+        let r = (1.0 - z * z).sqrt();
+
+        Self::from(r * a.cos(), r * a.sin(), z)
+    }
+
+
 }
 
 impl ops::Neg for Vec3 {

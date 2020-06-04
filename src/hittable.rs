@@ -2,9 +2,9 @@ use crate::{Color, Point3, Ray, Vec3};
 
 #[derive(Debug, Clone)]
 pub struct HitRecord {
-    p: Point3,
+    pub p: Point3,
     pub normal: Vec3, //TODO: should this be public
-    t: f64,
+    pub t: f64,
     pub front_face: bool,
 }
 
