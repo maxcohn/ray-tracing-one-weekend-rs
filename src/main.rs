@@ -10,43 +10,37 @@ const IMAGE_WIDTH: usize = 384;
 const IMAGE_HEIGHT: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
 
 
-/// Calculate whether or not we hit the sphere located at -1 on the z-axis
+/// Calculate the hit point of the ray on the spehere
 ///
 /// t^2 b⋅b+2tb⋅(A−C)+(A−C)⋅(A−C)−r^2=0
-fn hit_spehere(center: Point3, radius: f64, ray: &Ray) -> bool {
-    /*
-    let oc = ray.origin() - center; // A-C
-    let a = ray.direction().dot(ray.direction()); // b⋅b
-    let b = 2.0 * oc.dot(ray.direction()); // 2b⋅(A−C)
-    let c = oc.dot(oc) - radius * radius; // (A−C)⋅(A−C)−r^2
-    let discriminant = b * b - 4.0 * a * c;
-
+fn hit_spehere(center: Point3, radius: f64, ray: &Ray) -> f64 {
     // we have not found everything we can, with t being our only unknown
 
     // if the discriminant is greater than zero, that means our ray hits the sphere
     // at least once
-    discriminant > 0.0
-    */
+    
+    // (−b± √(b2−4ac) ) / (√2a)
 
     let oc = ray.origin() - center;
     
-    let a = ray.direction().dot(ray.direction());
-    let b = 2.0 * oc.dot(ray.direction());
-    let c = oc.dot(oc) - radius*radius;
-    let discriminant = b*b - 4.0*a*c;
-    
-    if discriminant > 0.0 {
-        eprintln!("{:?}", ray.direction());
-        eprintln!("{:?}", ray.direction().dot(ray.direction()));
-        //eprintln!("{:?}", oc);
+    let a = ray.direction().length_squared();
+    let half_b = oc.dot(ray.direction());
+    let c = oc.length_squared() - radius*radius;
+    let discriminant = half_b*half_b - a*c;
+
+    if discriminant < 0.0 {
+        return -1.0;
+    } else {
+        return (-half_b - discriminant.sqrt()) / a;
     }
-    return (discriminant > 0.0);
 }
 
 /// Get the color of the ray so that we can get a blue to white gradient
 fn ray_color(ray: &Ray) -> Color {
-    if hit_spehere(Point3::from(0.0, 0.0, -1.0), 0.5, ray) {
-        return Color::from(1.0, 0.0, 0.0);
+    let t = hit_spehere(Point3::from(0.0, 0.0, -1.0), 0.5, ray);
+    if t > 0.0 {
+        let n = (ray.at(t) - Vec3::from(0.0,0.0,-1.0)).unit_vector();
+        return 0.5 * Color::from(n.x() + 1.0, n.y() + 1.0, n.z() + 1.0);
     }
     let unit_dir: Vec3 = ray.direction().unit_vector();
 
