@@ -1,5 +1,5 @@
-use std::ops;
 use std::f64;
+use std::ops;
 
 use rand::Rng;
 
@@ -102,11 +102,7 @@ impl Vec3 {
     /// Generate a random Vec3 in with values between 0.0 and 1.0
     pub fn random() -> Self {
         let mut rng = rand::thread_rng();
-        Self::from(
-            rng.gen::<f64>(),
-            rng.gen::<f64>(),
-            rng.gen::<f64>()
-        )
+        Self::from(rng.gen::<f64>(), rng.gen::<f64>(), rng.gen::<f64>())
     }
 
     /// Generate a random Vec3 in with values in the given range
@@ -138,7 +134,7 @@ impl Vec3 {
 
     pub fn random_in_unit_sphere() -> Self {
         loop {
-            let p = Vec3::random_range(-1.0,1.0);
+            let p = Vec3::random_range(-1.0, 1.0);
             if p.length_squared() >= 1.0 {
                 continue;
             }
@@ -146,6 +142,13 @@ impl Vec3 {
         }
     }
 
+    pub fn refract(self, n: Vec3, etai_over_etat: f64) -> Self {
+        let cos_theta = (-self).dot(n);
+        let r_out_parallel = etai_over_etat * (self + cos_theta * n);
+        let r_out_perpendicular = (-(1.0 - r_out_parallel.length_squared()).sqrt()) * n;
+
+        r_out_parallel + r_out_perpendicular
+    }
 }
 
 impl ops::Neg for Vec3 {

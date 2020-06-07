@@ -4,19 +4,18 @@ use rand::Rng;
 
 mod camera;
 mod hittable;
+mod material;
 mod ray;
 mod util;
 mod vec3;
-mod material;
 
 use camera::*;
 use hittable::*;
+use material::Material;
 use ray::Ray;
 use vec3::{Color, Point3, Vec3};
-use material::Material;
 
 //TODO: once finished, randomly generate sphere to place around
-
 
 //TODO: make these adjustable - cli args
 const SAMPLES_PER_PIXEL: usize = 100;
@@ -28,7 +27,6 @@ const MAX_DEPTH: u32 = 50;
 /// Get the color of the ray so that we can get a blue to white gradient
 fn ray_color<T: Hittable>(ray: &Ray, world: &T, depth: u32) -> Color {
     let mut rec = HitRecord::new();
-
 
     if depth <= 0 {
         return Color::new();
@@ -56,9 +54,9 @@ fn ray_color<T: Hittable>(ray: &Ray, world: &T, depth: u32) -> Color {
 }
 
 fn main() {
-    let samples_per_pixel: u32;//: usize = 100;
-    let image_width: u32;//: usize = 384;
-    let image_height: u32;//: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
+    let samples_per_pixel: u32; //: usize = 100;
+    let image_width: u32; //: usize = 384;
+    let image_height: u32; //: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
 
     let args = std::env::args().skip(1).collect::<Vec<String>>();
 
@@ -67,11 +65,9 @@ fn main() {
         image_width = args[1].parse().unwrap();
     } else {
         samples_per_pixel = 100;
-        image_width = 384;   
+        image_width = 384;
     }
     image_height = ((image_width as f64) / ASPECT_RATIO) as u32;
-
-
 
     // file header
     println!("P3"); // specifies that colors are in ASCII
@@ -90,22 +86,44 @@ fn main() {
     let mut world = HittableList::new();
 
     world.push(Box::new(Sphere::from(
-        Point3::from(0.0,0.0,-1.0), 0.5, Material::Lambertian { albedo: Color::from(0.7, 0.3, 0.3)}
+        Point3::from(0.0, 0.0, -1.0),
+        0.5,
+        Material::Lambertian {
+            albedo: Color::from(0.7, 0.3, 0.3),
+        },
     )));
 
     world.push(Box::new(Sphere::from(
-        Point3::from(0.0,-100.5,-1.0), 100.0, Material::Lambertian { albedo: Color::from(0.8, 0.8, 0.0)}
+        Point3::from(0.0, -100.5, -1.0),
+        100.0,
+        Material::Lambertian {
+            albedo: Color::from(0.8, 0.8, 0.0),
+        },
     )));
 
     world.push(Box::new(Sphere::from(
-        Point3::from(1.0,0.0,-1.0), 0.5, Material::Metal { albedo: Color::from(0.8, 0.6, 0.2), fuzz: 0.3 }
+        Point3::from(1.0, 0.0, -1.0),
+        0.5,
+        Material::Metal {
+            albedo: Color::from(0.8, 0.6, 0.2),
+            fuzz: 0.0,
+        },
     )));
 
     world.push(Box::new(Sphere::from(
-        Point3::from(-1.0,0.0,-1.0), 0.5, Material::Lambertian { albedo: Color::from(0.8, 0.8, 0.8)}
+        Point3::from(-1.0, 0.0, -1.0),
+        0.5,
+        Material::Dielectric {
+            ref_idx: 1.5,
+        },
     )));
-
-
+    world.push(Box::new(Sphere::from(
+        Point3::from(-1.0, 0.0, -1.0),
+        -0.45,
+        Material::Dielectric {
+            ref_idx: 1.5,
+        },
+    )));
 
     for j in (0..image_height).rev() {
         eprintln!("Scan lines left: {}", j);

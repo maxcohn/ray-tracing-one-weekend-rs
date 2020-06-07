@@ -1,4 +1,4 @@
-use crate::{Color, Point3, Ray, Vec3, Material};
+use crate::{Color, Material, Point3, Ray, Vec3};
 
 //TODO: document all fields
 #[derive(Debug, Clone)]
@@ -26,7 +26,10 @@ impl HitRecord {
             normal: Vec3::new(),
             t: 0.0,
             front_face: false,
-            material: Material::Metal { albedo: Color::new(), fuzz: 0.0 },
+            material: Material::Metal {
+                albedo: Color::new(),
+                fuzz: 0.0,
+            },
         }
     }
 }
@@ -60,7 +63,10 @@ impl Hittable for HittableList {
             normal: Vec3::from(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
-            material: Material::Metal { albedo: Color::new(), fuzz: 0.0 },
+            material: Material::Metal {
+                albedo: Color::new(),
+                fuzz: 0.0,
+            },
         };
 
         let mut hit_anything = false;
@@ -86,7 +92,11 @@ pub struct Sphere {
 
 impl Sphere {
     pub fn from(center: Point3, radius: f64, material: Material) -> Self {
-        Sphere { center, radius, material }
+        Sphere {
+            center,
+            radius,
+            material,
+        }
     }
 }
 
