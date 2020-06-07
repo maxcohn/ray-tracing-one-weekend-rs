@@ -57,8 +57,8 @@ impl Vec3 {
         println!("{} {} {}", self.x(), self.y(), self.z());
     }
 
-    /// Print the Vec3 as a color
-    pub fn print_color(&self, samples_per_pixel: usize) {
+    /// Print the Vec3 as a color to stdout
+    pub fn print_color(&self, samples_per_pixel: u32) {
         let mut r = self.x();
         let mut g = self.y();
         let mut b = self.z();
@@ -99,6 +99,7 @@ impl Vec3 {
         *self / self.length()
     }
 
+    /// Generate a random Vec3 in with values between 0.0 and 1.0
     pub fn random() -> Self {
         let mut rng = rand::thread_rng();
         Self::from(
@@ -108,6 +109,7 @@ impl Vec3 {
         )
     }
 
+    /// Generate a random Vec3 in with values in the given range
     pub fn random_range(min: f64, max: f64) -> Self {
         let mut rng = rand::thread_rng();
         Self::from(
@@ -115,21 +117,6 @@ impl Vec3 {
             rng.gen_range(min, max),
             rng.gen_range(min, max),
         )
-    }
-
-    //TODO: remove
-    pub fn random_in_unit_sphere() -> Self {
-        // There are two unit radius spheres tangent to the hit point (p). These two
-        // spheres have a center of (P + n) and (P - n) (n is the normal surface).
-
-        loop {
-            let v = Vec3::random_range(-1.0, 1.0);
-            if v.length_squared() >= 1.0 {
-                continue;
-            }
-
-            return v;
-        }
     }
 
     pub fn random_unit_vector() -> Self {
@@ -145,6 +132,19 @@ impl Vec3 {
         Self::from(r * a.cos(), r * a.sin(), z)
     }
 
+    pub fn reflect(self, other: Vec3) -> Vec3 {
+        self - 2.0 * self.dot(other) * other
+    }
+
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_range(-1.0,1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
 
 }
 

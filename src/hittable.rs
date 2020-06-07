@@ -1,11 +1,13 @@
-use crate::{Color, Point3, Ray, Vec3};
+use crate::{Color, Point3, Ray, Vec3, Material};
 
+//TODO: document all fields
 #[derive(Debug, Clone)]
 pub struct HitRecord {
     pub p: Point3,
-    pub normal: Vec3, //TODO: should this be public
+    pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Material,
 }
 
 impl HitRecord {
@@ -24,6 +26,7 @@ impl HitRecord {
             normal: Vec3::new(),
             t: 0.0,
             front_face: false,
+            material: Material::Metal { albedo: Color::new(), fuzz: 0.0 },
         }
     }
 }
@@ -57,6 +60,7 @@ impl Hittable for HittableList {
             normal: Vec3::from(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
+            material: Material::Metal { albedo: Color::new(), fuzz: 0.0 },
         };
 
         let mut hit_anything = false;
@@ -77,11 +81,12 @@ impl Hittable for HittableList {
 pub struct Sphere {
     center: Point3,
     radius: f64,
+    material: Material,
 }
 
 impl Sphere {
-    pub fn from(center: Point3, radius: f64) -> Self {
-        Sphere { center, radius }
+    pub fn from(center: Point3, radius: f64, material: Material) -> Self {
+        Sphere { center, radius, material }
     }
 }
 
@@ -110,6 +115,7 @@ impl Hittable for Sphere {
                 hit_record.p = ray.at(temp);
                 let outward_normal = (hit_record.p - self.center) / self.radius;
                 hit_record.set_face_normal(ray, outward_normal);
+                hit_record.material = self.material;
                 return true;
             }
             let temp = (-half_b + root) / a;
@@ -118,6 +124,7 @@ impl Hittable for Sphere {
                 hit_record.p = ray.at(temp);
                 let outward_normal = (hit_record.p - self.center) / self.radius;
                 hit_record.set_face_normal(ray, outward_normal);
+                hit_record.material = self.material;
                 return true;
             }
         }

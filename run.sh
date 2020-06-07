@@ -6,4 +6,4 @@
 
 cargo build --release
 
-time ./target/release/ray-tracer > img.ppm && xdg-open img.ppm
+time ./target/release/ray-tracer $@ > img.ppm && xdg-open img.ppm
