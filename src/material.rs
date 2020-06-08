@@ -2,8 +2,6 @@ use rand::Rng;
 
 use crate::{Color, HitRecord, Hittable, Point3, Ray, Vec3};
 
-
-
 #[derive(Debug, Clone, Copy)]
 pub enum Material {
     Metal { albedo: Color, fuzz: f64 },
@@ -40,7 +38,6 @@ impl Material {
             Material::Dielectric { ref_idx } => {
                 let mut rng = rand::thread_rng();
 
-
                 *attenuation = Color::from(1.0, 1.0, 1.0);
 
                 // calculate if the light should refract or not
@@ -63,7 +60,7 @@ impl Material {
                 }
 
                 let reflect_prob = schlick(cos_theta, etai_over_etat);
-                
+
                 if rng.gen::<f64>() < reflect_prob {
                     let reflected = unit_dir.reflect(rec.normal);
                     *scattered = Ray::from(rec.p, reflected);

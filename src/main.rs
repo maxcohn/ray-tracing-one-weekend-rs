@@ -80,19 +80,17 @@ fn main() {
     // 1. Calculate ray from eye to pixel
     // 2. Determine which objects the ray intersects
     // 3. Compute a color for that intersection point
-
-    let cam = Camera::new();
-
     let mut world = HittableList::new();
-    
+
     let cam = Camera::from(
-        Point3::from(-2.0, 2.0, 1.0),
+        Point3::from(3.0, 3.0, 2.0),
         Point3::from(0.0, 0.0, -1.0),
         Vec3::from(0.0, 1.0, 0.0),
         20.0,
-        ASPECT_RATIO
+        ASPECT_RATIO,
+        2.0,
+        (Point3::from(3.0, 3.0, 2.0) - Point3::from(0.0, 0.0, -1.0)).length(),
     );
-    
 
     world.push(Box::new(Sphere::from(
         Point3::from(0.0, 0.0, -1.0),
