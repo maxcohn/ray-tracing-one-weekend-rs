@@ -1,4 +1,8 @@
+use rand::Rng;
+
 use crate::{Color, HitRecord, Hittable, Point3, Ray, Vec3};
+
+
 
 #[derive(Debug, Clone, Copy)]
 pub enum Material {
@@ -34,6 +38,9 @@ impl Material {
                 true
             }
             Material::Dielectric { ref_idx } => {
+                let mut rng = rand::thread_rng();
+
+
                 *attenuation = Color::from(1.0, 1.0, 1.0);
 
                 // calculate if the light should refract or not
@@ -54,6 +61,15 @@ impl Material {
                     *scattered = Ray::from(rec.p, reflected);
                     return true;
                 }
+
+                let reflect_prob = schlick(cos_theta, etai_over_etat);
+                
+                if rng.gen::<f64>() < reflect_prob {
+                    let reflected = unit_dir.reflect(rec.normal);
+                    *scattered = Ray::from(rec.p, reflected);
+                    return true;
+                }
+
                 // Refract
                 let refracted = unit_dir.refract(rec.normal, etai_over_etat);
                 *scattered = Ray::from(rec.p, refracted);
@@ -70,6 +86,6 @@ impl Material {
 /// R(theta) = R0 + (1 - R0)(1 - cos(theta))^5
 fn schlick(cos: f64, ref_idx: f64) -> f64 {
     let r0 = ((1.0 - ref_idx) / (1.0 + ref_idx)).powi(2);
-    
+
     r0 + (1.0 - r0) * (1.0 - cos).powi(5)
 }

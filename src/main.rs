@@ -84,6 +84,15 @@ fn main() {
     let cam = Camera::new();
 
     let mut world = HittableList::new();
+    
+    let cam = Camera::from(
+        Point3::from(-2.0, 2.0, 1.0),
+        Point3::from(0.0, 0.0, -1.0),
+        Vec3::from(0.0, 1.0, 0.0),
+        20.0,
+        ASPECT_RATIO
+    );
+    
 
     world.push(Box::new(Sphere::from(
         Point3::from(0.0, 0.0, -1.0),
@@ -113,16 +122,12 @@ fn main() {
     world.push(Box::new(Sphere::from(
         Point3::from(-1.0, 0.0, -1.0),
         0.5,
-        Material::Dielectric {
-            ref_idx: 1.5,
-        },
+        Material::Dielectric { ref_idx: 1.5 },
     )));
     world.push(Box::new(Sphere::from(
         Point3::from(-1.0, 0.0, -1.0),
         -0.45,
-        Material::Dielectric {
-            ref_idx: 1.5,
-        },
+        Material::Dielectric { ref_idx: 1.5 },
     )));
 
     for j in (0..image_height).rev() {
