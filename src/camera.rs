@@ -20,7 +20,7 @@ impl Camera {
         vfov: f64,
         aspect_ratio: f64,
         aperature: f64,
-        focus_dist: f64
+        focus_dist: f64,
     ) -> Self {
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
@@ -74,7 +74,6 @@ impl Camera {
         }
     }
     */
-
 
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
         let rd = self.lens_radius * Vec3::random_in_unit_disk();

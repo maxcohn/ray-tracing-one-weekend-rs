@@ -24,6 +24,82 @@ const IMAGE_WIDTH: usize = 384;
 const IMAGE_HEIGHT: usize = ((IMAGE_WIDTH as f64) / ASPECT_RATIO) as usize;
 const MAX_DEPTH: u32 = 50;
 
+fn random_scene() -> HittableList {
+    let mut rng = rand::thread_rng();
+    let mut world = HittableList::new();
+
+    let ground_material = Material::Lambertian {
+        albedo: Color::from(0.5, 0.5, 0.5),
+    };
+
+    world.push(Box::new(Sphere::from(
+        Point3::from(0.0, -1000.0, 0.0),
+        1000.0,
+        ground_material,
+    )));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let mat_prob = rng.gen::<f64>();
+            let center = Point3::from(
+                a as f64 + 0.9 * rng.gen::<f64>(),
+                0.2,
+                b as f64 + 0.9 * rng.gen::<f64>(),
+            );
+
+            if (center - Vec3::from(4.0, 0.2, 0.0)).length() <= 0.9 {
+                continue;
+            }
+
+            let mat: Material;
+
+            if mat_prob < 0.8 {
+                // diffuse
+                mat = Material::Lambertian {
+                    albedo: Color::random() * Color::random(),
+                };
+                world.push(Box::new(Sphere::from(center, 0.2, mat)));
+            } else if mat_prob < 0.95 {
+                // metal
+                let albedo = Color::random_range(0.0, 0.5);
+                let fuzz = rng.gen_range(0.0, 0.5);
+                mat = Material::Metal { albedo, fuzz };
+
+                world.push(Box::new(Sphere::from(center, 0.2, mat)));
+            } else {
+                mat = Material::Dielectric { ref_idx: 1.5 };
+            }
+
+            world.push(Box::new(Sphere::from(center, 0.2, mat)));
+        }
+    }
+
+    world.push(Box::new(Sphere::from(
+        Point3::from(0.0, 1.0, 0.0),
+        1.0,
+        Material::Dielectric { ref_idx: 1.5 },
+    )));
+
+    world.push(Box::new(Sphere::from(
+        Point3::from(-4.0, 1.0, 0.0),
+        1.0,
+        Material::Lambertian {
+            albedo: Color::random(),
+        },
+    )));
+
+    world.push(Box::new(Sphere::from(
+        Point3::from(4.0, 1.0, 0.0),
+        1.0,
+        Material::Metal {
+            albedo: Color::from(0.7, 0.6, 0.5),
+            fuzz: 0.0,
+        },
+    )));
+
+    world
+}
+
 /// Get the color of the ray so that we can get a blue to white gradient
 fn ray_color<T: Hittable>(ray: &Ray, world: &T, depth: u32) -> Color {
     let mut rec = HitRecord::new();
@@ -80,53 +156,17 @@ fn main() {
     // 1. Calculate ray from eye to pixel
     // 2. Determine which objects the ray intersects
     // 3. Compute a color for that intersection point
-    let mut world = HittableList::new();
+    let world = random_scene();
 
     let cam = Camera::from(
-        Point3::from(3.0, 3.0, 2.0),
-        Point3::from(0.0, 0.0, -1.0),
+        Point3::from(13.0, 2.0, 3.0),
+        Point3::from(0.0, 0.0, 0.0),
         Vec3::from(0.0, 1.0, 0.0),
         20.0,
         ASPECT_RATIO,
-        2.0,
-        (Point3::from(3.0, 3.0, 2.0) - Point3::from(0.0, 0.0, -1.0)).length(),
+        0.1,
+        10.0,
     );
-
-    world.push(Box::new(Sphere::from(
-        Point3::from(0.0, 0.0, -1.0),
-        0.5,
-        Material::Lambertian {
-            albedo: Color::from(0.7, 0.3, 0.3),
-        },
-    )));
-
-    world.push(Box::new(Sphere::from(
-        Point3::from(0.0, -100.5, -1.0),
-        100.0,
-        Material::Lambertian {
-            albedo: Color::from(0.8, 0.8, 0.0),
-        },
-    )));
-
-    world.push(Box::new(Sphere::from(
-        Point3::from(1.0, 0.0, -1.0),
-        0.5,
-        Material::Metal {
-            albedo: Color::from(0.8, 0.6, 0.2),
-            fuzz: 0.0,
-        },
-    )));
-
-    world.push(Box::new(Sphere::from(
-        Point3::from(-1.0, 0.0, -1.0),
-        0.5,
-        Material::Dielectric { ref_idx: 1.5 },
-    )));
-    world.push(Box::new(Sphere::from(
-        Point3::from(-1.0, 0.0, -1.0),
-        -0.45,
-        Material::Dielectric { ref_idx: 1.5 },
-    )));
 
     for j in (0..image_height).rev() {
         eprintln!("Scan lines left: {}", j);
